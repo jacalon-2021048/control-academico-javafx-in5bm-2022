@@ -198,6 +198,7 @@ public class InstructoresController implements Initializable{
                             limpiarCampos();
                             limpiarLabel();
                             deshabilitarCampos();
+                            cargarDatos();
                             tblInstructores.setDisable(false);
                             btnAgregar.setText("Agregar");
                             imgAgregar.setImage(new Image(PAQUETE_IMAGES+"agregar.png"));
