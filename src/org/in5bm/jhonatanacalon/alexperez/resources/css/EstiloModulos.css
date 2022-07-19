@@ -18,6 +18,25 @@
     -fx-background-radius:0 0 50 50;
 }
 
+#boton-cerrar{
+    -fx-background-color:#f5f4f5;
+    -fx-font-size:24px;
+    -fx-font-weight:bold;    
+}
+
+#boton-cerrar:hover{
+    -fx-background-color:#FF0000;
+    -fx-text-fill:#FFFFFF;
+    -fx-background-radius:50 50 50 50;
+    -fx-font-size:24px;
+}
+
+#boton-reporte:hover{
+    -fx-background-color:#0097c8;
+    -fx-text-fill:#FFFFFF;
+    -fx-font-size:18px;
+}
+
 .botones-crud{
     -fx-background-color:#0A0B37;
     -fx-text-fill:#FFFFFF;

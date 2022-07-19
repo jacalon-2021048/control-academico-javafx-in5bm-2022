@@ -15,15 +15,27 @@
 
 #boton-info{
     -fx-font-weight:bold;
-    -fx-background-color:#121212;
-    -fx-text-fill:#FFFFFF;
+    -fx-background-color:#FFFF00;
+    -fx-background-radius:100 100 100 100;
     -fx-font-size:18px;
 }
 
 #boton-info:hover{
-    -fx-background-color:#E7E7E7;
+    -fx-background-color:#0097c8;
+    -fx-text-fill:#FFFFFF;
+}
+
+#boton-reporte{
+    -fx-font-weight:bold;
+    -fx-background-color:#FFFF00;
     -fx-background-radius:100 100 100 100;
-    -fx-text-fill:#000000;
+    -fx-font-size:18px;
+}
+
+#boton-reporte:hover{
+    -fx-background-color:#0097c8;
+    -fx-text-fill:#FFFFFF;
+    -fx-font-size:18px;
 }
 
 .botones-principales{
@@ -37,4 +49,16 @@
     -fx-background-color:#E7E7E7;
     -fx-background-radius:30 30 30 30;
     -fx-text-fill:#000000;
+}
+
+#cerrar-sesion{
+    -fx-font-weight:bold;
+    -fx-background-color:#FFFF00;
+    -fx-background-radius:100 100 100 100;
+    -fx-font-size:18px;
+}
+
+#cerrar-sesion:hover{
+    -fx-background-color:#0097c8;
+    -fx-text-fill:#FFFFFF;
 }

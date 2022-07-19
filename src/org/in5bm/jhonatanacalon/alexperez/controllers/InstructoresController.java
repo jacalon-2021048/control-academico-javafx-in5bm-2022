@@ -17,6 +17,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import javafx.collections.ObservableList;
 import org.in5bm.jhonatanacalon.alexperez.db.Conexion;
 import org.in5bm.jhonatanacalon.alexperez.models.Instructores;
@@ -29,6 +31,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
+import org.in5bm.jhonatanacalon.alexperez.reports.GenerarReporte;
 
 /**
  *
@@ -112,6 +115,9 @@ public class InstructoresController implements Initializable{
     
     @FXML
     private Label lblNacimiento;
+    
+    @FXML
+    private Label lblCantidad;       
 
     @FXML
     private ImageView imgRegresar;
@@ -166,6 +172,8 @@ public class InstructoresController implements Initializable{
     
     @FXML
     private ImageView imgReporte;
+    
+    private int i=0;
     
     private ObservableList<Instructores> listaInstructores;
     
@@ -335,6 +343,7 @@ public class InstructoresController implements Initializable{
        
     @FXML
     void clicReporte(ActionEvent ae){
+        /*
         Alert alerta=new Alert(Alert.AlertType.INFORMATION);
         alerta.setTitle("Control Academico - AVISO!!!");
         alerta.setHeaderText(null);
@@ -343,6 +352,10 @@ public class InstructoresController implements Initializable{
         Stage stage=(Stage) alerta.getDialogPane().getScene().getWindow();
         Image ico=new Image(PAQUETE_IMAGES+"icono.png");
         stage.getIcons().add(ico);
+        */
+        Map<String,Object> parametros=new HashMap<>();
+        parametros.put("IMAGE_ENTIDAD",PAQUETE_IMAGES+"maestro.png");
+        GenerarReporte.getInstance().mostrarReporte("ReporteInstructores.jasper",parametros,"Reporte de Instructores");
     }
     
     @FXML
@@ -393,6 +406,8 @@ public class InstructoresController implements Initializable{
             pstmt.setString(9,String.valueOf(instructores.getFechaNacimiento()));
             System.out.println(pstmt.toString());
             pstmt.execute();
+            i++;
+            contador();
             listaInstructores.add(instructores);
             return true;
         }catch(SQLException e){
@@ -471,6 +486,8 @@ public class InstructoresController implements Initializable{
                 pstmt.setInt(1, instructor.getId());
                 System.out.println(pstmt.toString());
                 pstmt.execute();
+                i--;
+                contador();
                 return true;
             } catch (SQLException e) {
                 System.err.println("\nSe produjo un error al eliminar el siguiente registro: " + instructor.toString());
@@ -524,6 +541,8 @@ public class InstructoresController implements Initializable{
                 lista.add(instructores);
             }
             listaInstructores=FXCollections.observableArrayList(lista);
+            i=listaInstructores.size();
+            contador();
         }catch(SQLException e){
             System.err.println("\nSe produjo un error al consultar la tabla de Instructores");
             e.printStackTrace();
@@ -696,6 +715,10 @@ public class InstructoresController implements Initializable{
         }else if(txtTelefono.getText().isEmpty()){
             lblTelefono.setText("Campo obligatorio");
         }
+    }
+    
+    private void contador(){
+        lblCantidad.setText(String.valueOf(i));
     }
     
     public Principal getEscenarioPrincipal(){

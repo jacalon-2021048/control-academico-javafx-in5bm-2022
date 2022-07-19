@@ -15,6 +15,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -34,6 +36,7 @@ import org.in5bm.jhonatanacalon.alexperez.models.CarrerasTecnicas;
 import org.in5bm.jhonatanacalon.alexperez.models.Horarios;
 import org.in5bm.jhonatanacalon.alexperez.models.Instructores;
 import org.in5bm.jhonatanacalon.alexperez.models.Salones;
+import org.in5bm.jhonatanacalon.alexperez.reports.GenerarReporte;
 
 /**
  *
@@ -158,6 +161,11 @@ public class CursosController implements Initializable{
     private Label lblSalon;
     
     @FXML
+    private Label lblCantidad;       
+    
+    private int i=0;
+    
+    @FXML
     private ImageView imgRegresar;
     
     private ObservableList<Cursos> listaCursos;
@@ -262,20 +270,24 @@ public class CursosController implements Initializable{
             case ACTUALIZAR:
                 if(existeElementoSeleccionado()){
                     if(evaluacionCamposVacios()){
-                        if(actualizarCursos()){
-                            limpiarCampos();
-                            limpiarLabel();
-                            cargarDatos();
-                            deshabilitarCampos();
-                            tblCursos.setDisable(false);
-                            tblCursos.getSelectionModel().clearSelection();
-                            btnCambiar.setText("Cambiar");
-                            imgCambiar.setImage(new Image(PAQUETE_IMAGES + "modificar.png"));
-                            btnEliminar.setText("Eliminar");
-                            imgEliminar.setImage(new Image(PAQUETE_IMAGES + "eliminar.png"));
-                            btnAgregar.setDisable(false);
-                            btnReporte.setDisable(false);
-                            operacion=Operacion.NINGUNO;
+                        if(evaluacionCantCar()){
+                              if (actualizarCursos()){
+                                limpiarCampos();
+                                limpiarLabel();
+                                cargarDatos();
+                                deshabilitarCampos();
+                                tblCursos.setDisable(false);
+                                tblCursos.getSelectionModel().clearSelection();
+                                btnCambiar.setText("Cambiar");
+                                imgCambiar.setImage(new Image(PAQUETE_IMAGES + "modificar.png"));
+                                btnEliminar.setText("Eliminar");
+                                imgEliminar.setImage(new Image(PAQUETE_IMAGES + "eliminar.png"));
+                                btnAgregar.setDisable(false);
+                                btnReporte.setDisable(false);
+                                operacion = Operacion.NINGUNO;
+                            }
+                        }else{
+                            evaluacionDigitos();
                         }
                     }else{
                         camposObligatorios();
@@ -339,6 +351,7 @@ public class CursosController implements Initializable{
 
     @FXML
     void clicReporte(ActionEvent ae){
+        /*
         Alert alerta=new Alert(Alert.AlertType.INFORMATION);
         alerta.setTitle("Control Academico - AVISO!!!");
         alerta.setHeaderText(null);
@@ -347,6 +360,18 @@ public class CursosController implements Initializable{
         Stage stage=(Stage) alerta.getDialogPane().getScene().getWindow();
         Image ico=new Image(PAQUETE_IMAGES+"icono.png");
         stage.getIcons().add(ico);
+        */        
+        Map<String,Object> parametros=new HashMap<>();
+        if(existeElementoSeleccionado()){
+            Cursos cursos=(Cursos)tblCursos.getSelectionModel().getSelectedItem();
+            parametros.put("idReporte",cursos.getId());
+            parametros.put("IMAGE_ENTIDAD",PAQUETE_IMAGES+"cursos.png");
+            GenerarReporte.getInstance().mostrarReporte("ReporteCursosPorId.jasper",parametros,"Reporte de Cursos");
+            tblCursos.getSelectionModel().clearSelection();
+        }else{
+            parametros.put("IMAGE_ENTIDAD",PAQUETE_IMAGES+"cursos.png");
+            GenerarReporte.getInstance().mostrarReporte("ReporteCursos.jasper",parametros,"Reporte de Cursos");
+        }
     }
 
     @FXML
@@ -398,8 +423,10 @@ public class CursosController implements Initializable{
             pstmt.setInt(6,cursos.getHorarioId());
             pstmt.setInt(7,cursos.getInstructorId());
             pstmt.setString(8,cursos.getSalonId());
-            System.out.println(pstmt.toString());     
+            System.out.println(pstmt.toString());
             pstmt.execute();
+            i++;
+            contador();
             listaCursos.add(cursos);
             return true;
         }catch(SQLException e){
@@ -473,8 +500,10 @@ public class CursosController implements Initializable{
             pstmt=Conexion.getInstance().getConexion()
                     .prepareCall("{CALL sp_cursos_delete(?)}");
             pstmt.setInt(1,cursos.getId());
-            System.out.println(pstmt.toString());
+            System.out.println(pstmt.toString());            
             pstmt.execute();
+            i--;
+            contador();
             listaCursos.remove(tblCursos.getSelectionModel().getFocusedIndex());
             return true;
         }catch(SQLException e){
@@ -521,6 +550,8 @@ public class CursosController implements Initializable{
                 lista.add(cursos);
             }
             listaCursos=FXCollections.observableArrayList(lista);
+            i=listaCursos.size();
+            contador();
         }catch(SQLException e){
             System.err.println("\nSe produjo un error al consultar la tabla de Cursos");
             e.printStackTrace();
@@ -809,7 +840,6 @@ public class CursosController implements Initializable{
         }
     }
     
-    
     private void camposObligatorios(){
         if(txtNombreCurso.getText().isEmpty()){
             lblNombreCurso.setText("Campo obligatorio");
@@ -991,6 +1021,10 @@ public class CursosController implements Initializable{
     
     private boolean evaluacionDatos(ResultSet rs,int i) throws SQLException{
         return (rs.getByte(i)==1);
+    }
+    
+    private void contador(){
+        lblCantidad.setText(String.valueOf(i));
     }
     
     public Principal getEscenarioPrincipal(){

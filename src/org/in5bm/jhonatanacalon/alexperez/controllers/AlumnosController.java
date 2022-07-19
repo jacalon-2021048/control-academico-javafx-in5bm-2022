@@ -20,6 +20,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -28,6 +30,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.cell.PropertyValueFactory;
 import org.in5bm.jhonatanacalon.alexperez.db.Conexion;
 import org.in5bm.jhonatanacalon.alexperez.models.Alumnos;
+import org.in5bm.jhonatanacalon.alexperez.reports.GenerarReporte;
 
 /**
  *
@@ -39,7 +42,7 @@ import org.in5bm.jhonatanacalon.alexperez.models.Alumnos;
  * @jornada Matutina
  * @grupo 1
  */
-public class AlumnosController implements Initializable{    
+public class AlumnosController implements Initializable{        
     private enum Operacion{
         NINGUNO,GUARDAR,ACTUALIZAR
     }
@@ -133,7 +136,12 @@ public class AlumnosController implements Initializable{
     @FXML
     private Label lblApellido2;
     
-    private ObservableList<Alumnos> listaAlumnos;    
+    @FXML
+    private Label lblCantidad;       
+    
+    private int i=0;
+    
+    private ObservableList<Alumnos> listaAlumnos;
     
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -301,6 +309,7 @@ public class AlumnosController implements Initializable{
     
     @FXML
     void clicReporte(ActionEvent ae) throws URISyntaxException{
+        /*
         Alert alerta=new Alert(Alert.AlertType.INFORMATION);
         alerta.setTitle("Control Academico - AVISO!!!");
         alerta.setHeaderText(null);
@@ -309,6 +318,10 @@ public class AlumnosController implements Initializable{
         Stage stage=(Stage) alerta.getDialogPane().getScene().getWindow();
         Image ico=new Image(PAQUETE_IMAGES+"icono.png");
         stage.getIcons().add(ico);
+        */
+        Map<String,Object> parametros=new HashMap<>();
+        parametros.put("IMAGE_ENTIDAD",PAQUETE_IMAGES+"alumno.png");
+        GenerarReporte.getInstance().mostrarReporte("ReporteAlumnos.jasper",parametros,"Reporte de Alumnos");
     }
     
     @FXML
@@ -328,7 +341,7 @@ public class AlumnosController implements Initializable{
         }
     }
     
-    private boolean agregarAlumno(){        
+    private boolean agregarAlumno(){
         if(evaluacionPK()){
             Alumnos alumno=new Alumnos();
             alumno.setCarne(txtCarne.getText());
@@ -349,7 +362,9 @@ public class AlumnosController implements Initializable{
                 pstmt.setString(5,alumno.getApellido1());
                 pstmt.setString(6,alumno.getApellido2());
                 System.out.println(pstmt.toString());
-                pstmt.execute();            
+                pstmt.execute();
+                i++;
+                contador();
                 listaAlumnos.add(alumno);
                 return true;
             }catch(SQLException e){
@@ -422,6 +437,8 @@ public class AlumnosController implements Initializable{
                 pstmt.setString(1,alumno.getCarne());
                 System.out.println(pstmt.toString());
                 pstmt.execute();
+                i--;
+                contador();
                 return true;
             }catch(SQLException e){
                 System.err.println("\nSe produjo un error al eliminar el siguiente registro: " + alumno.toString());
@@ -466,6 +483,8 @@ public class AlumnosController implements Initializable{
                 lista.add(alumno);
             }
             listaAlumnos=FXCollections.observableArrayList(lista);
+            i=listaAlumnos.size();
+            contador();
         }catch(SQLException e){
             System.err.println("\nSe produjo un error al consultar la tabla de Alumnos\n");
             System.out.println("Message: " + e.getMessage());
@@ -626,6 +645,10 @@ public class AlumnosController implements Initializable{
         }
     }
     
+    private void contador(){
+        lblCantidad.setText(String.valueOf(i));
+    }
+
     public Principal getEscenarioPrincipal() {
         return escenarioPrincipal;
     }

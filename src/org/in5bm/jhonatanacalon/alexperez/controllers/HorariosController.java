@@ -24,7 +24,9 @@ import java.time.LocalTime;
 import javafx.scene.control.CheckBox;
 import com.jfoenix.controls.JFXTimePicker;
 import java.time.format.FormatStyle;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
@@ -34,6 +36,7 @@ import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
 import javafx.util.converter.LocalTimeStringConverter;
+import org.in5bm.jhonatanacalon.alexperez.reports.GenerarReporte;
 
 /**
  * 
@@ -138,6 +141,11 @@ public class HorariosController implements Initializable{
     
     @FXML
     private Label lblHorarioFinal;
+    
+    @FXML
+    private Label lblCantidad;       
+    
+    private int i=0;
     
     private ObservableList<Horarios> listaHorarios;
     
@@ -299,6 +307,7 @@ public class HorariosController implements Initializable{
 
     @FXML
     void clicReporte(ActionEvent ae){
+        /*
         Alert alerta=new Alert(Alert.AlertType.INFORMATION);
         alerta.setTitle("Control Academico - AVISO!!!");
         alerta.setHeaderText(null);
@@ -307,6 +316,10 @@ public class HorariosController implements Initializable{
         Stage stage=(Stage) alerta.getDialogPane().getScene().getWindow();
         Image ico=new Image(PAQUETE_IMAGES+"icono.png");
         stage.getIcons().add(ico);
+        */
+        Map<String,Object> parametros=new HashMap<>();
+        parametros.put("IMAGE_ENTIDAD",PAQUETE_IMAGES+"horario.png");
+        GenerarReporte.getInstance().mostrarReporte("ReporteHorarios.jasper",parametros,"Reporte de Horarios");
     }
 
     @FXML
@@ -351,6 +364,8 @@ public class HorariosController implements Initializable{
             pstmt.setString(7,String.valueOf(enviarDatosBD(horarios.getViernes())));
             System.out.println(pstmt.toString());
             pstmt.execute();
+            i++;
+            contador();
             listaHorarios.add(horarios);
             return true;
         }catch (SQLException e) {
@@ -424,6 +439,8 @@ public class HorariosController implements Initializable{
                 pstmt.setInt(1,horario.getId());
                 System.out.println(pstmt.toString());
                 pstmt.execute();
+                i--;
+                contador();
                 return true;
             } catch (SQLException e) {
                 System.err.println("\nSe produjo un error al eliminar el siguiente registro: " + horario.toString());
@@ -476,6 +493,8 @@ public class HorariosController implements Initializable{
                 lista.add(horarios);
             }
             listaHorarios=FXCollections.observableArrayList(lista);
+            i=listaHorarios.size();
+            contador();
         }catch(SQLException e){
             System.err.println("\nSe produjo un error al consultar la tabla de Horarios");
             System.out.println("Message: " + e.getMessage());
@@ -593,6 +612,10 @@ public class HorariosController implements Initializable{
         }else if(tpHorarioFinal.getValue()==null){
             lblHorarioFinal.setText("Campo obligatorio");
         }
+    }
+    
+    private void contador(){
+        lblCantidad.setText(String.valueOf(i));
     }
     
     public Principal getEscenarioPrincipal(){

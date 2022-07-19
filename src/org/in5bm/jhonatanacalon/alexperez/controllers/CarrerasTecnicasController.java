@@ -17,6 +17,8 @@ import java.sql.PreparedStatement;
 import javafx.scene.control.Label;
 import javafx.scene.control.Button;
 import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.control.TableView;
@@ -29,6 +31,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import org.in5bm.jhonatanacalon.alexperez.db.Conexion;
 import org.in5bm.jhonatanacalon.alexperez.system.Principal;
 import org.in5bm.jhonatanacalon.alexperez.models.CarrerasTecnicas;
+import org.in5bm.jhonatanacalon.alexperez.reports.GenerarReporte;
 
 
 /**
@@ -125,6 +128,11 @@ public class CarrerasTecnicasController implements Initializable{
     
     @FXML
     private Label lblCarrera;
+    
+    @FXML
+    private Label lblCantidad;       
+    
+    private int i=0;
         
     private ObservableList<CarrerasTecnicas> listaCarreras;
 
@@ -295,6 +303,7 @@ public class CarrerasTecnicasController implements Initializable{
     
     @FXML
     void clicReporte(ActionEvent ae) throws URISyntaxException{
+        /*
         Alert alerta=new Alert(Alert.AlertType.INFORMATION);
         alerta.setTitle("Control Academico - AVISO!!!");
         alerta.setHeaderText(null);
@@ -303,6 +312,10 @@ public class CarrerasTecnicasController implements Initializable{
         Stage stage=(Stage) alerta.getDialogPane().getScene().getWindow();
         Image ico=new Image(PAQUETE_IMAGES+"icono.png");
         stage.getIcons().add(ico);
+        */
+        Map<String,Object> parametros=new HashMap<>();
+        parametros.put("IMAGE_ENTIDAD",PAQUETE_IMAGES+"carrera-profesional.png");
+        GenerarReporte.getInstance().mostrarReporte("ReporteCarreras.jasper",parametros,"Reporte de Carreras");
     }
     
     @FXML
@@ -341,6 +354,8 @@ public class CarrerasTecnicasController implements Initializable{
                 pstmt.setString(5,carrera.getJornada());
                 System.out.println(pstmt.toString());
                 pstmt.execute();
+                i++;
+                contador();
                 listaCarreras.add(carrera);
                 return true;
             }catch(SQLException e){
@@ -411,6 +426,8 @@ public class CarrerasTecnicasController implements Initializable{
                 pstmt.setString(1,carreras.getCodigoTecnico());
                 System.out.println(pstmt.toString());
                 pstmt.execute();
+                i--;
+                contador();
                 return true;
             }catch(SQLException e){
                 System.err.println("\nSe produjo un error al eliminar el siguiente registro: " + carreras.toString());
@@ -453,6 +470,8 @@ public class CarrerasTecnicasController implements Initializable{
                 lista.add(carrera);
             }
             listaCarreras=FXCollections.observableArrayList(lista);
+            i=listaCarreras.size();
+            contador();
         }catch(SQLException e){
             System.err.println("\nSe produjo un error al consultar la tabla de Carreras Tecnicas");
             System.out.println("Message: " + e.getMessage());
@@ -608,6 +627,10 @@ public class CarrerasTecnicasController implements Initializable{
         } else if (txtJornada.getText().length() == 0) {
             lblJornada.setText("Campo obligatorio");
         }
+    }
+    
+    private void contador(){
+        lblCantidad.setText(String.valueOf(i));
     }
     
     public Principal getEscenarioPrincipal(){

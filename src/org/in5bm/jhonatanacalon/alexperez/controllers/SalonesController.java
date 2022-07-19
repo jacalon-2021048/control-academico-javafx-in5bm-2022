@@ -6,6 +6,8 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import javafx.collections.FXCollections;
@@ -29,6 +31,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
 import org.in5bm.jhonatanacalon.alexperez.db.Conexion;
 import org.in5bm.jhonatanacalon.alexperez.models.Salones;
+import org.in5bm.jhonatanacalon.alexperez.reports.GenerarReporte;
 import org.in5bm.jhonatanacalon.alexperez.system.Principal;
 
 /**
@@ -88,6 +91,9 @@ public class SalonesController implements Initializable{
     private Label lblCapacidadMaxima;
     
     @FXML
+    private Label lblCantidad;        
+    
+    @FXML
     private Spinner<Integer> spnCapacidad;
     
     private SpinnerValueFactory<Integer> valueFactoryCapacidad;
@@ -129,6 +135,8 @@ public class SalonesController implements Initializable{
     
     @FXML
     private ImageView imgReporte;
+    
+    private int i=0;
     
     private ObservableList<Salones> listaSalones;
     
@@ -301,6 +309,7 @@ public class SalonesController implements Initializable{
     
     @FXML
     void clicReporte(ActionEvent ae) throws URISyntaxException{
+        /*
         Alert alerta=new Alert(Alert.AlertType.INFORMATION);
         alerta.setTitle("Control Academico - AVISO!!!");
         alerta.setHeaderText(null);
@@ -309,6 +318,10 @@ public class SalonesController implements Initializable{
         Stage stage=(Stage) alerta.getDialogPane().getScene().getWindow();
         Image ico=new Image(PAQUETE_IMAGES+"icono.png");
         stage.getIcons().add(ico);
+        */
+        Map<String,Object> parametros=new HashMap<>();
+        parametros.put("IMAGE_ENTIDAD",PAQUETE_IMAGES+"salon.png");
+        GenerarReporte.getInstance().mostrarReporte("ReporteSalones.jasper",parametros,"Reporte de Salones");
     }
     
     @FXML
@@ -347,6 +360,8 @@ public class SalonesController implements Initializable{
                 pstmt.setString(5,String.valueOf(salon.getNivel()));
                 System.out.println(pstmt.toString());
                 pstmt.execute();
+                i++;
+                contador();
                 listaSalones.add(salon);
                 return true;
             } catch (SQLException e) {
@@ -418,6 +433,8 @@ public class SalonesController implements Initializable{
                 pstmt.setString(1,salon.getCodigoSalon());
                 System.out.println(pstmt.toString());
                 pstmt.execute();
+                i--;
+                contador();
                 return true;
             }catch(SQLException e){
                 System.err.println("\nSe produjo un error al eliminar el siguiente registro: " + salon.toString());
@@ -460,6 +477,8 @@ public class SalonesController implements Initializable{
                 lista.add(salon);
             }
             listaSalones=FXCollections.observableArrayList(lista);
+            i=listaSalones.size();
+            contador();
         }catch(SQLException e){
             System.err.println("\nSe produjo un error al consultar la tabla de Salones");
             e.printStackTrace();
@@ -590,6 +609,10 @@ public class SalonesController implements Initializable{
         } else if (spnCapacidad.getValueFactory().getValue().equals(1)) {
             lblCapacidadMaxima.setText("Elija un valor");
         }
+    }
+    
+    private void contador(){
+        lblCantidad.setText(String.valueOf(i));
     }
     
     public Principal getEscenarioPrincipal(){

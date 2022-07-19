@@ -13,7 +13,7 @@ DEFAULT COLLATE utf8_general_ci;
 * Grupo: 1
 *
 * Fecha creación: 11/04/2022
-* Fecha modificación: 02/06/2022
+* Fecha modificación: 11/07/2022
 *
 */
 
@@ -26,6 +26,8 @@ DROP TABLE IF EXISTS carreras_tecnicas;
 DROP TABLE IF EXISTS horarios;
 DROP TABLE IF EXISTS cursos;
 DROP TABLE IF EXISTS asignaciones_alumnos;
+DROP TABLE IF EXISTS usuarios;
+DROP TABLE IF EXISTS roles;
 
 CREATE TABLE IF NOT EXISTS alumnos(
 	carne VARCHAR(7) NOT NULL,
@@ -124,6 +126,21 @@ CREATE TABLE IF NOT EXISTS asignaciones_alumnos(
 		FOREIGN KEY (curso_id)
         REFERENCES cursos (id)
         ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS roles(
+	id INT NOT NULL,
+	descripcion VARCHAR(50) NOT NULL,
+	PRIMARY KEY (id)
+);
+    
+CREATE TABLE IF NOT EXISTS usuarios(
+	user VARCHAR(25) NOT NULL,
+    pass VARCHAR(255) NOT NULL,
+    nombre VARCHAR(50) NOT NULL,
+    rol_id INT NOT NULL,
+    PRIMARY KEY (user),
+    CONSTRAINT fk_usuario_rol FOREIGN KEY (rol_id) REFERENCES roles(id)
 );
 
 -- CRUD entidad alumnos----------------------------------------------------------------------------------------------------------------
@@ -233,6 +250,24 @@ BEGIN
 		alumnos
 	WHERE
 		alumnos.carne=_carne;
+END $$
+DELIMITER ;
+
+-- REPORT alumnos
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_alumnos_report $$
+CREATE PROCEDURE sp_alumnos_report()
+BEGIN
+	SELECT
+		alumnos.carne,
+        CONCAT(
+			alumnos.nombre1, " ",
+			IF(alumnos.nombre2 IS NULL, "", alumnos.nombre2), " ",
+            IF(alumnos.nombre3 IS NULL, "", alumnos.nombre3), " ",
+			alumnos.apellido1, " ",
+            IF(alumnos.apellido2 IS NULL,"", alumnos.apellido2)
+        ) AS nombre_completo
+	FROM alumnos;
 END $$
 DELIMITER ;
 
@@ -371,6 +406,28 @@ BEGIN
 END $$
 DELIMITER ;
 
+-- REPORT instructores
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_instructores_report $$
+CREATE PROCEDURE sp_instructores_report()
+BEGIN
+	SELECT
+		instructores.id,
+        CONCAT(
+			instructores.nombre1, " ",
+			IF(instructores.nombre2 IS NULL, "", instructores.nombre2), " ",
+            IF(instructores.nombre3 IS NULL, "", instructores.nombre3), " ",
+			instructores.apellido1, " ",
+            IF(instructores.apellido2 IS NULL,"", instructores.apellido2)
+        ) AS nombre_completo,
+        IF(instructores.direccion IS NULL,"", instructores.direccion) AS direccion,
+        instructores.email,
+        instructores.telefono,
+        iF(instructores.fecha_nacimiento IS NULL,"",instructores.fecha_nacimiento) AS fecha_nacimiento
+	FROM instructores;
+END $$
+DELIMITER ;
+
 -- CRUD entidad salones----------------------------------------------------------------------------------------------------------------
 -- CREATE salones
 DELIMITER $$
@@ -474,6 +531,21 @@ BEGIN
 END $$
 DELIMITER ;
 
+-- REPORT salones
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_salones_report $$
+CREATE PROCEDURE sp_salones_report()
+BEGIN
+	SELECT
+		salones.codigo_salon,
+        IF(salones.descripcion IS NULL, "", salones.descripcion) AS descripcion,
+        salones.capacidad_maxima,
+        IF(salones.edificio IS NULL, "", salones.edificio) AS edificio,
+        IF(salones.nivel IS NULL, 0, salones.nivel) AS nivel
+	FROM salones;
+END $$
+DELIMITER ;
+
 -- CRUD entidad carreras_tecnicas----------------------------------------------------------------------------------------------------------------
 -- CREATE carreras_tecnicas
 DELIMITER $$
@@ -574,6 +646,21 @@ BEGIN
 		carreras_tecnicas
 	WHERE
 		carreras_tecnicas.codigo_tecnico=_codigo_tecnico;	
+END $$
+DELIMITER ;
+
+-- REPORT carreras_tecnicas
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_carreras_tecnicas_report $$
+CREATE PROCEDURE sp_carreras_tecnicas_report()
+BEGIN
+	SELECT
+		carreras_tecnicas.codigo_tecnico,
+        carreras_tecnicas.carrera,
+        carreras_tecnicas.grado,
+        carreras_tecnicas.seccion,
+        carreras_tecnicas.jornada
+	FROM carreras_tecnicas;
 END $$
 DELIMITER ;
 
@@ -694,6 +781,24 @@ BEGIN
 		horarios
 	WHERE
 		horarios.id=_id;
+END $$
+DELIMITER ;
+
+-- REPORT horarios
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_horarios_report $$
+CREATE PROCEDURE sp_horarios_report()
+BEGIN
+	SELECT
+		horarios.id,
+        horarios.horario_inicio,
+        horarios.horario_final,
+        IF(horarios.lunes IS TRUE , "Aplica", "No Aplica") AS lunes,
+        IF(horarios.martes IS TRUE , "Aplica", "No Aplica") AS martes,
+        IF(horarios.miercoles IS TRUE , "Aplica", "No Aplica") AS miercoles,
+        IF(horarios.jueves IS TRUE , "Aplica", "No Aplica") AS jueves,
+        IF(horarios.viernes IS TRUE , "Aplica", "No Aplica") AS viernes
+	FROM horarios;
 END $$
 DELIMITER ;
 
@@ -824,6 +929,90 @@ BEGIN
 END $$
 DELIMITER ;
 
+-- REPORT cursos
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_cursos_report $$
+CREATE PROCEDURE sp_cursos_report()
+BEGIN
+	SELECT
+		cursos.id,
+		cursos.nombre_curso,
+        IF(cursos.ciclo IS NULL, "", cursos.ciclo) AS ciclo,
+  		IF(cursos.cupo_maximo IS NULL, "", cursos.cupo_maximo) AS cupo_maximo,
+		IF(cursos.cupo_minimo IS NULL, "", cursos.cupo_minimo) AS cupo_minimo,
+		cursos.carrera_tecnica_id,
+        carreras_tecnicas.carrera,
+		cursos.horario_id,
+        horarios.horario_inicio,
+        horarios.horario_final,
+		cursos.instructor_id,
+        CONCAT(
+			instructores.nombre1, " ",
+			instructores.apellido1
+        ) AS nombre_completo,
+		cursos.salon_id,
+        IF(salones.descripcion IS NULL, "", salones.descripcion) AS descripcion
+	FROM
+		cursos
+	INNER JOIN 
+		carreras_tecnicas
+    INNER JOIN
+		horarios
+	INNER JOIN
+		instructores
+	INNER JOIN
+		salones
+	ON
+		cursos.carrera_tecnica_id=carreras_tecnicas.codigo_tecnico 
+        AND cursos.horario_id=horarios.id AND cursos.instructor_id=instructores.id
+        AND cursos.salon_id=salones.codigo_salon;
+END $$
+DELIMITER ;
+
+-- REPORT BY ID cursos
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_cursos_report_by_id $$
+CREATE PROCEDURE sp_cursos_report_by_id(
+	IN _id INT
+)
+BEGIN
+	SELECT
+		cursos.id,
+		cursos.nombre_curso,
+        IF(cursos.ciclo IS NULL, "", cursos.ciclo) AS ciclo,
+  		IF(cursos.cupo_maximo IS NULL, "", cursos.cupo_maximo) AS cupo_maximo,
+		IF(cursos.cupo_minimo IS NULL, "", cursos.cupo_minimo) AS cupo_minimo,
+		cursos.carrera_tecnica_id,
+        carreras_tecnicas.carrera,
+		cursos.horario_id,
+        horarios.horario_inicio,
+        horarios.horario_final,
+		cursos.instructor_id,
+        CONCAT(
+			instructores.nombre1, " ",
+			instructores.apellido1
+        ) AS nombre_completo,
+		cursos.salon_id,
+        IF(salones.descripcion IS NULL, "", salones.descripcion) AS descripcion
+	FROM
+		cursos
+	INNER JOIN 
+		carreras_tecnicas
+    INNER JOIN
+		horarios
+	INNER JOIN
+		instructores
+	INNER JOIN
+		salones
+	ON
+		cursos.carrera_tecnica_id=carreras_tecnicas.codigo_tecnico 
+        AND cursos.horario_id=horarios.id AND cursos.instructor_id=instructores.id
+        AND cursos.salon_id=salones.codigo_salon
+	WHERE 
+		cursos.id=_id;
+END $$
+DELIMITER ;
+
 -- CRUD entidad asignaciones_alumnos----------------------------------------------------------------------------------------
 -- CREATE asignaciones_alumnos
 DELIMITER $$
@@ -915,6 +1104,89 @@ BEGIN
 		asignaciones_alumnos.id=_id;	
 END$$
 DELIMITER ;
+
+-- REPORT asignaciones_alumnos
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_asignaciones_alumnos_report $$
+CREATE PROCEDURE sp_asignaciones_alumnos_report()
+BEGIN
+	SELECT
+		asignaciones_alumnos.id,
+		asignaciones_alumnos.alumno_id,
+        CONCAT(
+			alumnos.nombre1, " ",
+			IF(alumnos.nombre2 IS NULL, "", alumnos.nombre2), " ",
+            IF(alumnos.nombre3 IS NULL, "", alumnos.nombre3), " ",
+			alumnos.apellido1, " ",
+            IF(alumnos.apellido2 IS NULL,"", alumnos.apellido2)
+        ) AS nombre_completo,
+		asignaciones_alumnos.curso_id,
+        cursos.nombre_curso,
+		asignaciones_alumnos.fecha_asignacion
+	FROM
+		asignaciones_alumnos
+	INNER JOIN 
+		alumnos
+    INNER JOIN 
+		cursos
+	ON
+		asignaciones_alumnos.alumno_id=alumnos.carne 
+        AND asignaciones_alumnos.curso_id=cursos.id;
+END $$
+DELIMITER ;
+
+-- REPORT BY ID asignaciones_alumnos
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_asignaciones_alumnos_report_by_id $$
+CREATE PROCEDURE sp_asignaciones_alumnos_report_by_id(
+	IN _id INT
+)
+BEGIN
+	SELECT
+		asignaciones_alumnos.id,
+		asignaciones_alumnos.alumno_id,
+        CONCAT(
+			alumnos.nombre1, " ",
+			IF(alumnos.nombre2 IS NULL, "", alumnos.nombre2), " ",
+            IF(alumnos.nombre3 IS NULL, "", alumnos.nombre3), " ",
+			alumnos.apellido1, " ",
+            IF(alumnos.apellido2 IS NULL,"", alumnos.apellido2)
+        ) AS nombre_completo,
+		asignaciones_alumnos.curso_id,
+        cursos.nombre_curso,
+		asignaciones_alumnos.fecha_asignacion
+	FROM
+		asignaciones_alumnos
+	INNER JOIN 
+		alumnos
+    INNER JOIN 
+		cursos
+	ON
+		asignaciones_alumnos.alumno_id=alumnos.carne 
+        AND asignaciones_alumnos.curso_id=cursos.id
+	WHERE
+		asignaciones_alumnos.id=_id;
+END $$
+DELIMITER ;
+-- REPORT usuarios---------------------------------------------------------------------------------------------------------------------------
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_usuarios_read $$
+CREATE PROCEDURE sp_usuarios_read(
+	_user VARCHAR(50)
+)
+BEGIN
+	SELECT
+		usuarios.user,
+        usuarios.pass,
+        usuarios.nombre,
+        usuarios.rol_id
+	FROM
+		usuarios
+	WHERE
+		usuarios.user=_user;
+END$$
+DELIMITER ;
+
 -- --------calls alumnos-------------------------------------------
 CALL sp_alumnos_create("2021001","Juan","Paco","Pedro","Perez","Lopez");
 CALL sp_alumnos_create("2021002","Marta","Lorena","","Gonzalez","Lopez");
@@ -997,4 +1269,12 @@ CALL sp_asignaciones_alumnos_create("2021006",6,'2022-01-15 07:50');
 CALL sp_asignaciones_alumnos_create("2021007",7,'2022-01-15 08:00');
 CALL sp_asignaciones_alumnos_create("2021008",8,'2022-01-15 08:10');
 CALL sp_asignaciones_alumnos_create("2021009",9,'2022-01-15 08:20');
-CALL sp_asignaciones_alumnos_create("2021010",10,'2022-01-15 08:30');
+CALL sp_asignaciones_alumnos_create("2021010",10,'2022-01-15 08:30'); 
+
+-- INSERTANDO datos en las tablas para el login---
+
+INSERT INTO roles(id, descripcion) VALUES (1, "Administrador");
+INSERT INTO roles(id, descripcion) VALUES (2, "Estandar");
+
+INSERT INTO usuarios(user, pass, nombre, rol_id) VALUES("root", "admin", "Jorge Pérez", 1);
+INSERT INTO usuarios(user, pass, nombre, rol_id) VALUES ("kinal", "12345", "Jhonatan Acalon", 2);

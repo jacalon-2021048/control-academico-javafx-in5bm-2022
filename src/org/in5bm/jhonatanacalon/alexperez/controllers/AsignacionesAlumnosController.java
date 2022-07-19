@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.DatePicker;
+import com.jfoenix.controls.JFXDatePicker;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import org.in5bm.jhonatanacalon.alexperez.db.Conexion;
@@ -29,11 +29,14 @@ import org.in5bm.jhonatanacalon.alexperez.models.Cursos;
 import org.in5bm.jhonatanacalon.alexperez.system.Principal;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.stage.Stage;
+import org.in5bm.jhonatanacalon.alexperez.reports.GenerarReporte;
 
 /**
  *
@@ -106,14 +109,19 @@ public class AsignacionesAlumnosController implements Initializable{
     @FXML
     private TableColumn<AsignacionesAlumnos,LocalDate> colFechaAsignacion;
     
-    @FXML
-    private DatePicker dpkFechaAsignacion;
+        @FXML
+    private JFXDatePicker dpkFechaAsignacion;
     
     @FXML
     private Label lblCurso;
     
     @FXML
     private Label lblCarne;
+    
+    @FXML
+    private Label lblCantidad;       
+    
+    private int i=0;
     
     private ObservableList<AsignacionesAlumnos> listaAsignaciones;
     
@@ -277,7 +285,8 @@ public class AsignacionesAlumnosController implements Initializable{
     }
 
     @FXML
-    void clicReporte(ActionEvent ae) {
+    void clicReporte(ActionEvent ae){
+        /*
         Alert alerta=new Alert(Alert.AlertType.INFORMATION);
         alerta.setTitle("Control Academico - AVISO!!!");
         alerta.setHeaderText(null);
@@ -286,6 +295,18 @@ public class AsignacionesAlumnosController implements Initializable{
         Stage stage=(Stage) alerta.getDialogPane().getScene().getWindow();
         Image ico=new Image(PAQUETE_IMAGES+"icono.png");
         stage.getIcons().add(ico);
+        */
+        Map<String,Object> parametros=new HashMap<>();        
+        if(existeElementoSeleccionado()){
+            AsignacionesAlumnos asignaciones=(AsignacionesAlumnos)tblAsignaciones.getSelectionModel().getSelectedItem();
+            parametros.put("idReporte",asignaciones.getId());
+            parametros.put("IMAGE_ENTIDAD",PAQUETE_IMAGES+"asignacion.png");
+            GenerarReporte.getInstance().mostrarReporte("ReporteAsignacionesPorId.jasper",parametros,"Reporte de Asignaciones");
+            tblAsignaciones.getSelectionModel().clearSelection();
+        }else{
+            parametros.put("IMAGE_ENTIDAD",PAQUETE_IMAGES+"asignacion.png");
+            GenerarReporte.getInstance().mostrarReporte("ReporteAsignaciones.jasper",parametros,"Reporte de Asignaciones");
+        }
     }
 
     @FXML
@@ -324,6 +345,8 @@ public class AsignacionesAlumnosController implements Initializable{
             pstmt.setTimestamp(3,Timestamp.valueOf(asignaciones.getFechaAsignacion()));
             System.out.println(pstmt.toString());
             pstmt.execute();
+            i++;
+            contador();
             listaAsignaciones.add(asignaciones);
             return true;
         }catch(SQLException e){
@@ -390,6 +413,8 @@ public class AsignacionesAlumnosController implements Initializable{
             pstmt.setInt(1,asignaciones.getId());
             System.out.println(pstmt.toString());
             pstmt.execute();
+            i--;
+            contador();            
             listaAsignaciones.remove(tblAsignaciones.getSelectionModel().getFocusedIndex());
             return true;
         }catch(SQLException e){
@@ -440,6 +465,8 @@ public class AsignacionesAlumnosController implements Initializable{
                 lista.add(asignaciones);
             }          
             listaAsignaciones=FXCollections.observableArrayList(lista);
+            i=listaAsignaciones.size();
+            contador();
         }catch(SQLException e){
             System.err.println("\nSe produjo un error al consultar la tabla de Asignaciones Alumnos");
             System.out.println("Message: " + e.getMessage());
@@ -698,6 +725,10 @@ public class AsignacionesAlumnosController implements Initializable{
             }
         }
         return listaCursos;
+    }
+    
+    private void contador(){
+        lblCantidad.setText(String.valueOf(i));
     }
 
     public Principal getEscenarioPrincipal(){

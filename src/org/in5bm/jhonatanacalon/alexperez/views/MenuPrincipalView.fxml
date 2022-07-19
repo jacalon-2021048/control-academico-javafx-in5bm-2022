@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -133,5 +136,27 @@
          <font>
             <Font name="Garamond" size="20.0" />
          </font></Button>
+      <MenuBar id="boton-reporte" layoutX="736.0" layoutY="6.0">
+        <menus>
+          <Menu mnemonicParsing="false" text="Reportes">
+            <items>
+                  <MenuItem mnemonicParsing="false" onAction="#clicReporteAlumnos" text="Alumnos" />
+              <MenuItem mnemonicParsing="false" onAction="#clicReporteInstructores" text="Instructores" />
+                  <MenuItem mnemonicParsing="false" onAction="#clicReporteSalones" text="Salones" />
+                  <MenuItem mnemonicParsing="false" onAction="#clicReporteCarreras" text="Carreras" />
+                  <MenuItem mnemonicParsing="false" onAction="#clicReporteHorarios" text="Horarios" />
+                  <MenuItem mnemonicParsing="false" onAction="#clicReporteCursos" text="Cursos" />
+                  <MenuItem mnemonicParsing="false" onAction="#clicReporteCursosId" text="Por ID de Curso" />
+                  <MenuItem mnemonicParsing="false" onAction="#clicReporteAsignaciones" text="Asignaciones" />
+                  <MenuItem mnemonicParsing="false" onAction="#clicReporteAsignacionesId" text="Por ID de Asignación" />
+            </items>
+          </Menu>
+        </menus>
+      </MenuBar>
+      <Button id="cerrar-sesion" layoutX="869.0" layoutY="6.0" mnemonicParsing="false" onAction="#clicLogin" text="Cerrar Sesión">
+         <font>
+            <Font name="Garamond" size="20.0" />
+         </font>
+      </Button>
    </children>
 </AnchorPane>
